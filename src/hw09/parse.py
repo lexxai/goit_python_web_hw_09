@@ -108,7 +108,7 @@ def parse_data_authors(
         if author:
             author_name = author.get("author_name")
             if author_name in authors:
-                break
+                continue
             else:
                 authors.append(author_name)
             author_link = author.get("author_link")
@@ -149,7 +149,7 @@ if __name__ == "__main__":
     data_authors = parse_data_authors(data_quotes)
     pprint(data_authors)
     data_quotes = correction_quotes_author_name(data_quotes, data_authors)
-    pprint(data_quotes)
+    #pprint(data_quotes)
     ##pprint(data_authors)
     # print(len(data_quotes), len(data_authors))
     # pprint(data)
