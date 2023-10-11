@@ -2,13 +2,14 @@ from pathlib import Path
 from pprint import pprint
 import requests
 from bs4 import BeautifulSoup
+import concurrent.futures
 
 from database.models import Quotes, Authors
 
 
 json_dest = Path(__file__).parent.joinpath("database").joinpath("json")
 
-def parse_url_author(url: str) -> dict:
+def parse_url_author(url: str, base_author_name: str) -> dict:
     result = {}
     next = None
     if not url:
@@ -28,6 +29,7 @@ def parse_url_author(url: str) -> dict:
     author_born_location = soup.select_one(css_born_location).text.strip()
     author_desc = soup.select_one(css_desc).text.strip()
     result = {
+        "base_author_name": base_author_name,
         "fullname": author_name,
         "born_date": author_born, 
         "born_location": author_born_location,
@@ -86,6 +88,7 @@ def parse_data_quotes(base_url: str = "https://quotes.toscrape.com") -> list[dic
 def parse_data_authors(data: list[dict], base_url: str = "https://quotes.toscrape.com") -> list[dict]:
     store_ = []
     url = base_url
+    urls = []
     for record in data:
         author = record.get("author")
         if author:
@@ -93,8 +96,13 @@ def parse_data_authors(data: list[dict], base_url: str = "https://quotes.toscrap
             author_link = author.get("author_link")
             print(author_name, author_link)
             url = base_url + author_link
-            author_info = parse_url_author(url)
-            store_.append(author_info)
+            urls.append(url)
+            # author_info = parse_url_author(url)
+            # store_.append(author_info)
+
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        store_ = list(executor.map(parse_url_author, urls, author_name))
+
     return store_
 
 
