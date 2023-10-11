@@ -10,8 +10,9 @@ from database.models import Quotes, Authors
 json_dest = Path(__file__).parent.joinpath("database").joinpath("json")
 
 
-def parse_url_author(url: str, base_author_name: str) -> dict:
+def parse_url_author(url_data: str) -> dict:
     result = {}
+    url, base_author_name = url_data
     next = None
     if not url:
         return result, next
@@ -101,25 +102,20 @@ def parse_data_authors(
 ) -> dict:
     store_ = {}
     url = base_url
-    urls = []
-    authors = []
+    urls = set()
     for record in data:
         author = record.get("author")
         if author:
             author_name = author.get("author_name")
-            if author_name in authors:
-                continue
-            else:
-                authors.append(author_name)
             author_link = author.get("author_link")
-            print(author_name, author_link)
             url = base_url + author_link
-            urls.append(url)
-            # author_info = parse_url_author(url)
+            urls.add((url, author_name))
+            # author_info = parse_url_author((url, author_name))
             # store_.append(author_info)
+    #pprint(urls)
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        results = executor.map(parse_url_author, urls, [author_name])
+        results = executor.map(parse_url_author, urls)
 
     for result in results:
         store_.update(result)
@@ -143,13 +139,16 @@ def correction_quotes_author_name(
 
 
 if __name__ == "__main__":
+    print("Get Quotes")
     data_quotes = parse_data_quotes(max_records=1)
     # pprint(data_quotes)
     print("-" * 120)
+    print("Get Authors")
     data_authors = parse_data_authors(data_quotes)
-    pprint(data_authors)
+    # pprint(data_authors)
+    print("Tune Authors Names on Quotes")
     data_quotes = correction_quotes_author_name(data_quotes, data_authors)
-    #pprint(data_quotes)
+    pprint(data_quotes)
     ##pprint(data_authors)
     # print(len(data_quotes), len(data_authors))
     # pprint(data)
