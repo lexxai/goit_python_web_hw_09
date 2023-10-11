@@ -9,14 +9,15 @@ from database.models import Quotes, Authors
 
 json_dest = Path(__file__).parent.joinpath("database").joinpath("json")
 
+
 def parse_url_author(url: str, base_author_name: str) -> dict:
     result = {}
     next = None
     if not url:
         return result, next
-    css_author  = "h3.author-title"
+    css_author = "h3.author-title"
     css_born = "div.author-details > p > strong"
-    css_born = "div.author-details span.author-born-date"    
+    css_born = "div.author-details span.author-born-date"
     css_born_location = "div.author-details span.author-born-location"
     css_desc = "div.author-description"
     # print(url)
@@ -29,13 +30,15 @@ def parse_url_author(url: str, base_author_name: str) -> dict:
     author_born_location = soup.select_one(css_born_location).text.strip()
     author_desc = soup.select_one(css_desc).text.strip()
     result = {
-        "base_author_name": base_author_name,
-        "fullname": author_name,
-        "born_date": author_born, 
-        "born_location": author_born_location,
-        "description": author_desc
+        base_author_name: {
+            "fullname": author_name,
+            "born_date": author_born,
+            "born_location": author_born_location,
+            "description": author_desc,
+        }
     }
     return result
+
 
 def parse_url_quotes(url: str) -> tuple[list[dict], next]:
     result = []
@@ -48,26 +51,30 @@ def parse_url_quotes(url: str) -> tuple[list[dict], next]:
     if html_doc.status_code != 200:
         return result, next
     soup = BeautifulSoup(html_doc.content, "html.parser")
-    quotes = soup.find_all("span", attrs={"class": "text"})
-    authors = soup.find_all("small", attrs={"class": "author"})
-    authors_link = soup.select_one("div.quote:nth-child(1) > span:nth-child(2) > a:nth-child(2)")
-    tags = soup("div", attrs={"class": "tags"})
+    quotes_block = soup.select("div.quote")
     next = soup.select_one(css_selector_next)
 
-    for quote, author, tag in zip(quotes, authors, tags):
-        q_text = quote.text.strip()
+    for quote in quotes_block:
+        quote_text = quote.select_one("span.text")
+        tag = quote.select_one("div.tags")
+        author_block = quote.select_one("span:nth-child(2)")
+        author_name = author_block.select_one("small.author")
+        author_link = author_block.select_one("a")
+        q_text = quote_text.text.strip()
         q_author = {
-            "author_name": author.text.strip(),
-            "author_link": authors_link.get('href')
+            "author_name": author_name.text.strip(),
+            "author_link": author_link.get("href"),
         }
         q_tags = [t.text.strip() for t in tag.find_all("a", attrs={"class": "tag"})]
-        result.append({"tags": q_tags, "author": q_author, "quote": q_text})  
+        result.append({"tags": q_tags, "author": q_author, "quote": q_text})
     if next:
         next = next.get("href")
     return result, next
 
 
-def parse_data_quotes(base_url: str = "https://quotes.toscrape.com") -> list[dict]:
+def parse_data_quotes(
+    base_url: str = "https://quotes.toscrape.com", max_records: int = 1000
+) -> list[dict]:
     store_ = []
     url = base_url
     while True:
@@ -75,7 +82,11 @@ def parse_data_quotes(base_url: str = "https://quotes.toscrape.com") -> list[dic
             break
         result, next_url = parse_url_quotes(url)
         store_.extend(result)
-        break  # TEST !!! #TODO
+        if max_records:
+            max_records -= 1
+            if max_records <= 0:
+                print("Limit on the number of accepted records, stop.")
+                break
         if not next:
             break
         if next_url:
@@ -85,14 +96,21 @@ def parse_data_quotes(base_url: str = "https://quotes.toscrape.com") -> list[dic
     return store_
 
 
-def parse_data_authors(data: list[dict], base_url: str = "https://quotes.toscrape.com") -> list[dict]:
-    store_ = []
+def parse_data_authors(
+    data: list[dict], base_url: str = "https://quotes.toscrape.com"
+) -> dict:
+    store_ = {}
     url = base_url
     urls = []
+    authors = []
     for record in data:
         author = record.get("author")
         if author:
             author_name = author.get("author_name")
+            if author_name in authors:
+                break
+            else:
+                authors.append(author_name)
             author_link = author.get("author_link")
             print(author_name, author_link)
             url = base_url + author_link
@@ -101,20 +119,39 @@ def parse_data_authors(data: list[dict], base_url: str = "https://quotes.toscrap
             # store_.append(author_info)
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        store_ = list(executor.map(parse_url_author, urls, author_name))
+        results = executor.map(parse_url_author, urls, [author_name])
+
+    for result in results:
+        store_.update(result)
 
     return store_
 
 
+def correction_quotes_author_name(
+    data_quotes: list[dict], data_authors: dict
+) -> list[dict]:
+    result = []
+    for record in data_quotes:
+        author = record.get("author")
+        if author:
+            author_name = author.get("author_name")
+            data_author = data_authors.get(author_name)
+            if data_author:
+                record["author"] = data_author.get("fullname")
+        result.append(record)
+    return result
 
 
 if __name__ == "__main__":
-    data_quotes = parse_data_quotes()
-    pprint(data_quotes)
-    print("-"*120)
+    data_quotes = parse_data_quotes(max_records=1)
+    # pprint(data_quotes)
+    print("-" * 120)
     data_authors = parse_data_authors(data_quotes)
     pprint(data_authors)
+    data_quotes = correction_quotes_author_name(data_quotes, data_authors)
+    pprint(data_quotes)
+    ##pprint(data_authors)
     # print(len(data_quotes), len(data_authors))
     # pprint(data)
     # auth = parse_url_author("http://quotes.toscrape.com/author/Eleanor-Roosevelt/")
-    # pprint(auth) 
+    # pprint(auth)
