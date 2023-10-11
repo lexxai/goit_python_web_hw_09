@@ -13,6 +13,8 @@ pymongo = "^4.5.0"
 mongoengine = "^0.27.0"
 faker = "^19.10.0"
 tdqm = "^0.0.1"
+beautifulsoup4 = "^4.12.2"
+requests = "^2.31.0"
 
 
 [build-system]
