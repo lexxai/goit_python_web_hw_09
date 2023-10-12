@@ -1,7 +1,15 @@
+import json
 from pathlib import Path
 import scrapy
 from scrapy.crawler import CrawlerProcess
 from scrapy.item import Item, Field
+from itemadapter import ItemAdapter
+import logging
+
+from database.connect import connect_db
+from database.seeds import seeds
+
+
 
 
 json_dest = Path(__file__).parent.joinpath("database").joinpath("json")
@@ -20,12 +28,60 @@ class AuthorItem(Item):
     description = Field()
 
 
-class QuotesSpider(scrapy.Spider):
-    name = "quotes"
-    custom_settings = {
-        "FEED_FORMAT": "json",
-        "FEED_URI": str(json_dest.joinpath(f"{name}.json")),
-    }
+class QuotesAuthorPipeline:
+    authors = []
+    quotes = []
+
+    def process_item(self, item, spider):
+        adapter = ItemAdapter(item)
+        if "fullname" in adapter.keys():
+            self.authors.append(
+                {
+                    "fullname": adapter.get("fullname"),
+                    "born_date": adapter.get("born_date"),
+                    "born_location": adapter.get("born_location"),
+                    "description": adapter.get("description"),
+                }
+            )
+        elif "quote" in adapter.keys():
+            self.quotes.append(
+                {
+                    "tags": adapter.get("keywords"),
+                    "author": adapter.get("author"),
+                    "quote": adapter.get("quote"),
+                }
+            )
+        return item
+
+    def write_json_file(self, data: list[dict], json_path: Path):
+        with json_path.open("w", encoding="UTF-8") as fp:
+            json.dump(data, fp, ensure_ascii=False)
+
+    def write_json_files(self):
+        quotes_path = json_dest.joinpath("quotes.json")
+        authors_path = json_dest.joinpath("authors.json")
+        self.write_json_file(self.authors, authors_path)
+        self.write_json_file(self.quotes, quotes_path)
+
+
+    def write_to_databse(self):
+        if connect_db():
+            seeds()
+
+    def close_spider(self, spider):
+        print(f"> Write to json files: authors ({len(self.authors)}), quotes ({len(self.quotes)})")
+        self.write_json_files()
+        print("> Write to database")
+        self.write_to_databse()
+
+
+class QuotesAuthorSpider(scrapy.Spider):
+    name = "quotes_authors"
+    # custom_settings = {
+    #     "FEED_FORMAT": "json",
+    #     "FEED_URI": str(json_dest.joinpath(f"{name}.json")),
+    # }
+    custom_settings = {"ITEM_PIPELINES": {QuotesAuthorPipeline: 300}}
     allowed_domains = ["quotes.toscrape.com"]
     start_urls = ["https://quotes.toscrape.com"]
 
@@ -49,11 +105,15 @@ class QuotesSpider(scrapy.Spider):
     def nested_parse_author(self, response):
         author = response.xpath("/html//div[@class='author-details']")
         fullname = author.xpath('h3[@class="author-title"]/text()').get().strip()
-        born_date = author.xpath('p/span[@class="author-born-date"]/text()').get().strip()
+        born_date = (
+            author.xpath('p/span[@class="author-born-date"]/text()').get().strip()
+        )
         born_location = (
             author.xpath('p/span[@class="author-born-location"]/text()').get().strip()
         )
-        description = author.xpath('div[@class="author-description"]/text()').get().strip()
+        description = (
+            author.xpath('div[@class="author-description"]/text()').get().strip()
+        )
         yield AuthorItem(
             fullname=fullname,
             born_date=born_date,
@@ -61,8 +121,15 @@ class QuotesSpider(scrapy.Spider):
             description=description,
         )
 
-
-# run spider
-process = CrawlerProcess()
-process.crawl(QuotesSpider)
-process.start()
+if __name__ == "__main__":
+    process = CrawlerProcess()
+    logger_pymongo = logging.getLogger("pymongo")
+    logger_pymongo.setLevel(logging.ERROR)
+    # run spider
+    logger_scrapy = logging.getLogger("scrapy")
+    logger_scrapy.setLevel(logging.ERROR)   
+    logger_urllib = logging.getLogger("urllib3")
+    logger_urllib.setLevel(logging.ERROR)   
+    process.crawl(QuotesAuthorSpider)
+    logging.basicConfig(level=logging.ERROR)
+    process.start()
