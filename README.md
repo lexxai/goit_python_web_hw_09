@@ -18,7 +18,7 @@ GoIT, Python WEB, Homework number 09. Web-scraping. BeautifulSoup. NoSQL. MongoD
 
 
 ## Виконання
-### 1.
+### 1. BeautifulSoup, ThreadPool, MongoDB
 python src/hw09/parse.py
 ```
 > Get Quotes
@@ -41,7 +41,7 @@ Add quotes...
 ![Quotes](doc/db-quotes-02.png)
 
 
-### 2.
+### 2. Scrapy, MongoDB
 python.exe "src/hw09/main.py"
 ```
 2023-10-12 17:00:26 [scrapy.utils.log] INFO: Scrapy 2.11.0 started (bot: scrapybot)
