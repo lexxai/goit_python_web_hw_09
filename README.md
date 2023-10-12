@@ -36,10 +36,35 @@ Add quotes...
 100%|██████████████████████████████████████████████████████████████████████████████████████████| 100/100 [00:08<00:00, 12.14it/s]
 < Saved json files to Database
 ```
-#### Databses
-![Authors](doc/db-authors.png)
-![Quotes](doc/db-quotes.png)
+#### Databses 01
+![Authors](doc/db-authors-01.png)
+![Quotes](doc/db-quotes-02.png)
 
+
+### 2.
+python.exe "src/hw09/main.py"
+```
+2023-10-12 17:00:26 [scrapy.utils.log] INFO: Scrapy 2.11.0 started (bot: scrapybot)
+2023-10-12 17:00:26 [scrapy.utils.log] INFO: Versions: lxml 4.9.3.0, libxml2 2.10.3, cssselect 1.2.0, parsel 1.8.1, w3lib 2.1.2, Twisted 22.10.0, Python 3.12.0 (tags/v3.12.0:0fb18b0, Oct  2 2023, 13:03:39) [MSC v.1935 64 bit (AMD64)], pyOpenSSL 23.2.0 (OpenSSL 3.1.3 19 Sep 2023), cryptography 41.0.4, Platform Windows-11-10.0.22621-SP0
+2023-10-12 17:00:26 [py.warnings] WARNING: virtualenvs\goit-python-web-hw-09-yWBMqls4-py3.12\Lib\site-packages\scrapy\utils\request.py:254: ScrapyDeprecationWarning: '2.6' is a deprecated value for the 'REQUEST_FINGERPRINTER_IMPLEMENTATION' setting.
+
+It is also the default value. In other words, it is normal to get this warning if you have not defined a value for the 'REQUEST_FINGERPRINTER_IMPLEMENTATION' setting. This is so for backward compatibility reasons, but it will change in a future version of Scrapy.
+
+See the documentation of the 'REQUEST_FINGERPRINTER_IMPLEMENTATION' setting for information on how to handle this deprecation.    
+  return cls(crawler)
+
+> Write to json files: authors (50), quotes (100)
+> Write to database
+connect_db - ok
+Add authors...
+100%|████████████████████████████████████████████████████████████████████████████████████████████| 50/50 [00:02<00:00, 20.78it/s]
+Add quotes...
+100%|██████████████████████████████████████████████████████████████████████████████████████████| 100/100 [00:08<00:00, 11.16it/s]
+
+```
+#### Databses 02
+![Authors](doc/db-authors-02.png)
+![Quotes](doc/db-quotes-02.png)
 
 
 
