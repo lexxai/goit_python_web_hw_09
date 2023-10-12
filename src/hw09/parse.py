@@ -5,8 +5,8 @@ import requests
 from bs4 import BeautifulSoup
 import concurrent.futures
 
-from database.connect import connect_db
-from database.seeds import seeds
+from hw09.database.connect import connect_db
+from hw09.database.seeds import seeds
 
 
 json_dest = Path(__file__).parent.joinpath("database").joinpath("json")

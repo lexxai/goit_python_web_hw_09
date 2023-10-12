@@ -6,8 +6,8 @@ from scrapy.item import Item, Field
 from itemadapter import ItemAdapter
 import logging
 
-from database.connect import connect_db
-from database.seeds import seeds
+from hw09.database.connect import connect_db
+from hw09.database.seeds import seeds
 
 
 

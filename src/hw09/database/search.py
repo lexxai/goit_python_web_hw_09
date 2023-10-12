@@ -3,7 +3,7 @@ import redis
 from redis_lru import RedisLRU
 import re
 
-from hw09.database.models import Authors, Quotes
+from database.models import Authors, Quotes
 
 
 REDIS_HOST = os.getenv('REDIS_HOST', "localhost")

@@ -1,5 +1,5 @@
 # goit_python_web_hw_09
-GoIT, Python WEB, Homework number 09. Web-scraping. BeautifulSoup. NoSQL. MongoDB. Scrapy, ThreadPool.
+GoIT, Python WEB, Homework number 09. Web-scraping. BeautifulSoup. NoSQL. MongoDB. Scrapy, ThreadPool. Docker.
 
 ## Домашнє завдання #9
 
@@ -65,6 +65,13 @@ Add quotes...
 #### Databses 02
 ![Authors](doc/db-authors-02.png)
 ![Quotes](doc/db-quotes-02.png)
+
+### 3. Docker
+- build image: scripts\docker_build_image.cmd
+- run : scripts\docker_run.cmd
+
+![Docker RUN](doc/docker-01.png)
+
 
 
 

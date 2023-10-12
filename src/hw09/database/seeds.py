@@ -125,7 +125,7 @@ def seed_contacts(max_records: int = 100, preffer_type: str = "type_email", drop
 
 
 if __name__ == "__main__":
-    from hw08.database.connect import connect_db
+    from src.hw09.database.connect import connect_db
 
     if connect_db():
         # seeds()
