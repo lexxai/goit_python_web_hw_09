@@ -1,10 +1,12 @@
+import json
 from pathlib import Path
 from pprint import pprint
 import requests
 from bs4 import BeautifulSoup
 import concurrent.futures
 
-from database.models import Quotes, Authors
+from database.connect import connect_db
+from database.seeds import seeds
 
 
 json_dest = Path(__file__).parent.joinpath("database").joinpath("json")
@@ -112,7 +114,7 @@ def parse_data_authors(
             urls.add((url, author_name))
             # author_info = parse_url_author((url, author_name))
             # store_.append(author_info)
-    #pprint(urls)
+    # pprint(urls)
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         results = executor.map(parse_url_author, urls)
@@ -138,19 +140,37 @@ def correction_quotes_author_name(
     return result
 
 
-if __name__ == "__main__":
-    print("Get Quotes")
-    data_quotes = parse_data_quotes(max_records=1)
+def save_to_json(file_path: Path, data: list[dict]):
+    with file_path.open("w", encoding="UTF-8", newline="") as fd:
+        json.dump(data, fd, ensure_ascii=False)
+
+def save_to_database():
+    if connect_db():
+        seeds()
+
+
+def main():
+    print("> Get Quotes")
+    data_quotes = parse_data_quotes(max_records=None)
+    print(f"< Loaded Quotes: {len(data_quotes)}")
     # pprint(data_quotes)
-    print("-" * 120)
-    print("Get Authors")
+    # print("-" * 120)
+    print("> Get Authors (ThreadPool)")
     data_authors = parse_data_authors(data_quotes)
+    print(f"< Loaded Authors: {len(data_authors)}")
     # pprint(data_authors)
-    print("Tune Authors Names on Quotes")
+    print("= Tune Authors Names on Quotes")
     data_quotes = correction_quotes_author_name(data_quotes, data_authors)
-    pprint(data_quotes)
-    ##pprint(data_authors)
-    # print(len(data_quotes), len(data_authors))
-    # pprint(data)
-    # auth = parse_url_author("http://quotes.toscrape.com/author/Eleanor-Roosevelt/")
-    # pprint(auth)
+    # pprint(data_quotes)
+    print("> Save json files for Authors and Quotes")
+    quotes_path = json_dest.joinpath("quotes.json")
+    authors_path = json_dest.joinpath("authors.json")
+    save_to_json(quotes_path, data_quotes)
+    save_to_json(authors_path, list(data_authors.values()))
+    print(f"< Saved json files: {str(authors_path.name)}, {str(quotes_path.name)}")
+    print("> Save json files to Database")
+    save_to_database()
+    print("< Saved json files to Database")
+
+if __name__ == "__main__":
+    main()

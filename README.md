@@ -15,3 +15,31 @@ GoIT, Python WEB, Homework number 09. Web-scraping. BeautifulSoup. NoSQL. MongoD
 Використовуйте для скрапінгу фреймворк Scrapy. 
 
 Запуск краулера повинен бути виконаний у вигляді єдиного скрипта main.py.
+
+
+## Виконання
+### 1.
+python src/hw09/parse.py
+```
+> Get Quotes
+< Loaded Quotes: 100
+> Get Authors (ThreadPool)
+< Loaded Authors: 50
+= Tune Authors Names on Quotes
+> Save json files for Authors and Quotes
+< Saved json files: authors.json, quotes.json
+> Save json files to Database
+connect_db - ok
+Add authors...
+100%|████████████████████████████████████████████████████████████████████████████████████████████| 50/50 [00:02<00:00, 18.84it/s]
+Add quotes...
+100%|██████████████████████████████████████████████████████████████████████████████████████████| 100/100 [00:08<00:00, 12.14it/s]
+< Saved json files to Database
+```
+#### Databses
+![Authors](doc/db-authors.png)
+![Quotes](doc/db-quotes.png)
+
+
+
+
