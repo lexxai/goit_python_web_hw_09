@@ -19,6 +19,8 @@ GoIT, Python WEB, Homework number 09. Web-scraping. BeautifulSoup. NoSQL. MongoD
 
 ## Виконання
 ### 1. BeautifulSoup, ThreadPool, MongoDB
+prepare Database connection enviroment on /.evn file from template file /doc/dotenv
+
 python src/hw09/parse.py
 ```
 > Get Quotes
